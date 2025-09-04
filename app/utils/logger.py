@@ -19,8 +19,13 @@ def configure_logger():
     """
     Configures logging with a rotating file handler and a console handler.
     """
-    # Create a custom logger
+    # Get the root logger
     logger = logging.getLogger()
+    
+    # Clear any existing handlers to avoid duplicates
+    if logger.handlers:
+        logger.handlers.clear()
+    
     logger.setLevel(logging.DEBUG)
     
     # Define formatter
@@ -39,6 +44,11 @@ def configure_logger():
     # Add handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    
+    # Prevent propagation to avoid duplicate logs
+    logger.propagate = False
+    
+    return logger
 
-# Configure the logger
-configure_logger()
+# Don't auto-configure on import for FastAPI apps
+# configure_logger()
