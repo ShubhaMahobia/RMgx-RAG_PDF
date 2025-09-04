@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.routes import upload
 from app.utils.logger import configure_logger
+from app.routes import chat
 import logging
 import os
 
@@ -14,6 +15,7 @@ app = FastAPI(title="PDF RAG Chatbot")
 
 # Include routes
 app.include_router(upload.router, prefix="/api", tags=["Upload"])
+app.include_router(chat.router, prefix="/api", tags=["Chat"])
 
 @app.on_event("startup")
 async def startup_event():

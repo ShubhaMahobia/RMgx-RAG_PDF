@@ -1,55 +1,77 @@
-import os
-from langchain_community.document_loaders import PyPDFLoader
 from typing import List
+import logging
 from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.retrievers import BM25Retriever
+from langchain.retrievers import EnsembleRetriever
+from langchain_chroma import Chroma
 
-class PDFLoader:
-    """
-    Class to handle PDF loading and document splitting.
-    """
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
-    def __init__(self, file_path: str):
+class RetrieverFactory:
+    def __init__(self, vectorstore: Chroma):
         """
-        Initialize with the path to the PDF file.
-        """
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
-        self.file_path = file_path
-        self.documents: List[Document] = []
-
-    def load(self) -> List[Document]:
-        """
-        Load PDF file using LangChain's PyPDFLoader.
-        Returns a list of Document objects with page text + metadata.
-        """
-        loader = PyPDFLoader(self.file_path)
-        self.documents = loader.load()
-        return self.documents
-
-    def split(
-        self,
-        chunk_size: int = None,
-        chunk_overlap: int = None
-    ) -> List[Document]:
-        """
-        Split loaded documents into smaller chunks for embeddings.
-
+        Initialize retriever factory with a vectorstore.
+        
         Args:
-            chunk_size (int): Max characters per chunk.
-            chunk_overlap (int): Overlap between chunks.
-
-        Returns:
-            List[Document]: List of chunked Document objects.
+            vectorstore (Chroma): A Chroma vectorstore instance
         """
-        if not self.documents:
-            raise ValueError("No documents loaded. Call load() first.")
+        logger.info("Initializing RetrieverFactory")
+        logger.debug(f"Vectorstore type: {type(vectorstore).__name__}")
+        self.vectorstore = vectorstore
 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            separators=["\n\n", "\n", ".", " ", ""]
-        )
+    def get_semantic_retriever(self, k: int = 5):
+        """
+        Create a semantic retriever using vector embeddings.
+        
+        Args:
+            k (int): number of results to retrieve
+        """
+        logger.info(f"Creating semantic retriever with k={k}")
+        try:
+            retriever = self.vectorstore.as_retriever(search_kwargs={"k": k})
+            logger.debug("Semantic retriever created successfully")
+            return retriever
+        except Exception as e:
+            logger.error(f"Failed to create semantic retriever: {str(e)}")
+            raise
 
-        split_docs = text_splitter.split_documents(self.documents)
-        return split_docs
+    def get_keyword_retriever(self, documents: List[Document]):
+        """
+        Create a keyword retriever (BM25).
+        
+        Args:
+            documents (List[Document]): original documents (chunked)
+        """
+        logger.info(f"Creating keyword retriever with {len(documents)} documents")
+        try:
+            retriever = BM25Retriever.from_documents(documents)
+            logger.debug("Keyword retriever created successfully")
+            return retriever
+        except Exception as e:
+            logger.error(f"Failed to create keyword retriever: {str(e)}")
+            raise
+
+    def get_hybrid_retriever(self, documents: List[Document], k: int = 5, weights=(0.7, 0.3)):
+        """
+        Create a hybrid retriever (semantic + keyword).
+        
+        Args:
+            documents (List[Document]): original documents (chunked)
+            k (int): number of results
+            weights (tuple): weights for semantic vs keyword retriever
+        """
+        logger.info(f"Creating hybrid retriever with k={k}, weights={weights}")
+        try:
+            semantic_retriever = self.get_semantic_retriever(k=k)
+            keyword_retriever = self.get_keyword_retriever(documents)
+
+            hybrid = EnsembleRetriever.from_llms(
+                retrievers=[semantic_retriever, keyword_retriever],
+                weights=list(weights)
+            )
+            logger.debug("Hybrid retriever created successfully")
+            return hybrid
+        except Exception as e:
+            logger.error(f"Failed to create hybrid retriever: {str(e)}")
+            raise
