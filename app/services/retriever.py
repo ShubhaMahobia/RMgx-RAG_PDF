@@ -1,50 +1,55 @@
+import os
+from langchain_community.document_loaders import PyPDFLoader
 from typing import List
 from langchain.schema import Document
-from langchain.retrievers import BM25Retriever, EnsembleRetriever
-from langchain.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-class RetrieverFactory:
-    def __init__(self, vectorstore: Chroma):
+class PDFLoader:
+    """
+    Class to handle PDF loading and document splitting.
+    """
+
+    def __init__(self, file_path: str):
         """
-        Initialize retriever factory with a vectorstore.
-        
+        Initialize with the path to the PDF file.
+        """
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+        self.file_path = file_path
+        self.documents: List[Document] = []
+
+    def load(self) -> List[Document]:
+        """
+        Load PDF file using LangChain's PyPDFLoader.
+        Returns a list of Document objects with page text + metadata.
+        """
+        loader = PyPDFLoader(self.file_path)
+        self.documents = loader.load()
+        return self.documents
+
+    def split(
+        self,
+        chunk_size: int = None,
+        chunk_overlap: int = None
+    ) -> List[Document]:
+        """
+        Split loaded documents into smaller chunks for embeddings.
+
         Args:
-            vectorstore (Chroma): A Chroma vectorstore instance
-        """
-        self.vectorstore = vectorstore
+            chunk_size (int): Max characters per chunk.
+            chunk_overlap (int): Overlap between chunks.
 
-    def get_semantic_retriever(self, k: int = 5):
+        Returns:
+            List[Document]: List of chunked Document objects.
         """
-        Create a semantic retriever using vector embeddings.
-        
-        Args:
-            k (int): number of results to retrieve
-        """
-        return self.vectorstore.as_retriever(search_kwargs={"k": k})
+        if not self.documents:
+            raise ValueError("No documents loaded. Call load() first.")
 
-    def get_keyword_retriever(self, documents: List[Document]):
-        """
-        Create a keyword retriever (BM25).
-        
-        Args:
-            documents (List[Document]): original documents (chunked)
-        """
-        return BM25Retriever.from_documents(documents)
-
-    def get_hybrid_retriever(self, documents: List[Document], k: int = 5, weights=(0.7, 0.3)):
-        """
-        Create a hybrid retriever (semantic + keyword).
-        
-        Args:
-            documents (List[Document]): original documents (chunked)
-            k (int): number of results
-            weights (tuple): weights for semantic vs keyword retriever
-        """
-        semantic_retriever = self.get_semantic_retriever(k=k)
-        keyword_retriever = self.get_keyword_retriever(documents)
-
-        hybrid = EnsembleRetriever(
-            retrievers=[semantic_retriever, keyword_retriever],
-            weights=list(weights)
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            separators=["\n\n", "\n", ".", " ", ""]
         )
-        return hybrid
+
+        split_docs = text_splitter.split_documents(self.documents)
+        return split_docs

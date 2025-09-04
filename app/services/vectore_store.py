@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 from langchain.schema import Document
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.embeddings.base import Embeddings
 
 class VectorStoreHandler:

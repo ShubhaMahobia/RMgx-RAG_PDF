@@ -14,3 +14,7 @@ class Config:
     
     # Embedding Dimensions
     EMBEDDING_DIMENSION = 768  # Google's embedding dimension
+    
+    # Document Processing Configuration
+    CHUNK_SIZE = 1000  # Default chunk size in characters
+    CHUNK_OVERLAP = 200  # Default chunk overlap in characters
