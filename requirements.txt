@@ -11,4 +11,8 @@ langchain-community
 langchain-huggingface
 python-dotenv
 tqdm
+python-multipart
 requests
+langchain-google-genai
+google-generativeai
+from_root

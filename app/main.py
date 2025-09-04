@@ -1,7 +1,11 @@
 from fastapi import FastAPI
+from app.routes import upload
 
-app = FastAPI()
+app = FastAPI(title="PDF RAG Chatbot")
 
-@app.get("/")
-async def root():
-    return {"message": "Hello, World!"}
+# Include routes
+app.include_router(upload.router, prefix="/api", tags=["Upload"])
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
