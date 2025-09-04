@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 from from_root import from_root
 from datetime import datetime
@@ -32,12 +33,21 @@ def configure_logger():
     formatter = logging.Formatter("[ %(asctime)s ] %(name)s - %(levelname)s - %(message)s")
 
     # File handler with rotation
-    file_handler = RotatingFileHandler(log_file_path, maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
+    file_handler = RotatingFileHandler(log_file_path, maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT, encoding='utf-8')
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.DEBUG)
     
-    # Console handler
-    console_handler = logging.StreamHandler()
+    # Console handler with Windows compatibility
+    if sys.platform == "win32":
+        # On Windows, use a safe console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        # Force UTF-8 encoding for console output
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    else:
+        # On other platforms, use standard handler
+        console_handler = logging.StreamHandler()
+    
     console_handler.setFormatter(formatter)
     console_handler.setLevel(logging.INFO)
     

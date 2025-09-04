@@ -66,7 +66,6 @@ async def chat_endpoint(request: ChatRequest):
         return {
             "query": request.query,
             "answer": response["answer"],
-            "sources": response["sources"]
         }
         
     except Exception as e:
