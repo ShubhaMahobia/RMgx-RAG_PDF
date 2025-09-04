@@ -38,10 +38,15 @@ class VectorStoreHandler:
             logger.info(f"Saving {len(documents)} documents to vector store")
             logger.debug(f"Using embedding model: {type(embedding_model).__name__}")
             
+            # Log metadata information for debugging
+            for i, doc in enumerate(documents[:3]):  # Log first 3 documents
+                logger.debug(f"Document {i} metadata: {doc.metadata}")
+            
             self.vectorstore = Chroma.from_documents(
                 documents=documents,
                 embedding=embedding_model,
-                persist_directory=self.persist_dir
+                persist_directory=self.persist_dir,
+                collection_metadata={"description": "PDF documents with enhanced metadata for citations"}
             )
 
             # Persist to disk
@@ -84,4 +89,8 @@ class VectorStoreHandler:
             raise RuntimeError("Vectorstore is not initialized. Load or save documents first.")
         
         logger.debug(f"Creating retriever with k={k} documents")
-        return self.vectorstore.as_retriever(search_kwargs={"k": k})
+        return self.vectorstore.as_retriever(
+            search_kwargs={
+                "k": k
+            }
+        )

@@ -53,6 +53,12 @@ def health_check():
     logger.debug("Health check endpoint called")
     return {"status": "ok"}
 
+
+@app.get("/")
+def welcome():
+    logger.debug("Server is running")
+    return {"Server": "Running"}
+
 @app.get("/status")
 async def status_endpoint():
     """
@@ -112,4 +118,6 @@ async def status_endpoint():
             "message": "Status check failed",
             "details": str(e)
         }
+
+
 

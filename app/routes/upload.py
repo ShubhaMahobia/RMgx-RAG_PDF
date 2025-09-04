@@ -27,8 +27,11 @@ async def upload_pdf(file: UploadFile = File(...)):
     try:
         # 1. Save uploaded file
         logger.debug("Saving uploaded file")
-        file_path = save_pdf_file(file)
+        file_info = save_pdf_file(file)
+        file_path = file_info["file_path"]
+        original_filename = file_info["original_filename"]
         logger.info(f"File saved successfully at: {file_path}")
+        logger.info(f"Original filename: {original_filename}")
 
         # 2. Load PDF -> extract text
         logger.debug("Loading PDF content")
@@ -63,10 +66,10 @@ async def upload_pdf(file: UploadFile = File(...)):
         vs_handler.save_documents(chunks, embedder.model)
         logger.info("Documents saved to vector store successfully")
 
-        logger.info(f"PDF upload and processing completed successfully for: {file.filename}")
+        logger.info(f"PDF upload and processing completed successfully for: {original_filename}")
         return {
             "message": "File uploaded and processed successfully",
-            "file_name": file.filename,
+            "file_name": original_filename,
             "total_chunks": len(chunks),
             "vectorstore_path": vs_handler.persist_dir
         }
