@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+pypdf
+sentence-transformers
+transformers
+torch
+numpy
+chromadb
+langchain
+langchain-community
+langchain-huggingface
+python-dotenv
+tqdm
+requests
