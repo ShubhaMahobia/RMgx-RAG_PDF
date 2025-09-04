@@ -19,6 +19,11 @@ class EmbeddingModel:
         try:
             logger.info(f"Initializing embedding model with model_name: {model_name or 'models/embedding-001'}")
             
+            # Check if API key is provided
+            if not api_key:
+                logger.error("Google API key for embeddings not found. Please set it in your environment or .env file.")
+                raise ValueError("Google API key for embeddings not found. Please set it in your environment or .env file.")
+            
             # Google Generative AI embeddings
             self.model: Embeddings = GoogleGenerativeAIEmbeddings(
                 model=model_name or "models/embedding-001",
