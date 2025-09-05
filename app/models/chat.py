@@ -5,19 +5,6 @@ class ChatRequest(BaseModel):
     query: str
     retriever_type: str = "hybrid"  # "semantic" | "keyword" | "hybrid"
 
-class Citation(BaseModel):
-    """Citation metadata for source documents."""
-    page_number: Optional[int] = None
-    pdf_name: str  # Original PDF filename (not UUID)
-    chunk_text: str  # The actual text chunk that was used
-
-class ChatResponse(BaseModel):
-    """Response with answer and citations."""
-    query: str
-    answer: str
-    citations: List[Citation]
-    total_sources: int
-    processing_time_ms: Optional[float] = None
 
 class DeleteRequest(BaseModel):
     """Request model for deleting files."""
