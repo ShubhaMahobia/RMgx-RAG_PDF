@@ -60,9 +60,12 @@ class APIClient:
         data = {"confirm": True}
         return self._make_request("POST", "/api/reset", json=data)
 
-    def chat(self, query: str) -> Dict[str, Any]:
-        """Send chat query to backend"""
-        data = {"query": query}
+    def chat(self, query: str, session_id: str = "default") -> Dict[str, Any]:
+        """Send chat query to backend with session ID for memory management"""
+        data = {
+            "query": query,
+            "session_id": session_id
+        }
         return self._make_request("POST", "/api/chat", json=data)
 
     def test_connection(self) -> bool:
