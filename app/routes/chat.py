@@ -18,8 +18,14 @@ class ChatRequest(BaseModel):
     query: str
 
 # Output schema
+class Source(BaseModel):
+    pdf_name: str
+    page_number: int
+    relevant_text: str
+
 class ChatResponse(BaseModel):
     answer: str
+    sources: list[Source]
 
 
 
@@ -50,14 +56,36 @@ async def chat(request: ChatRequest):
         )
 
         if not search_results.matches:
-            return ChatResponse(answer="I could not find any relevant information.")
+            return ChatResponse(answer="I could not find any relevant information.", sources=[])
 
-        # 3. Collect retrieved context
-        retrieved_contexts = [
-            match.metadata.get("text", "")
-            for match in search_results.matches
-            if "text" in match.metadata
-        ]
+        # 3. Collect retrieved context and source information
+        retrieved_contexts = []
+        sources = []
+        
+        # Get similarity scores to filter most relevant matches
+        for match in search_results.matches:
+            if "text" in match.metadata:
+                # Check if the text actually contains relevant information
+                # by looking for keywords from the query in the text
+                text = match.metadata.get("text", "").lower()
+                query_keywords = query_text.lower().split()
+                
+                # Calculate relevance score based on keyword presence and similarity score
+                keyword_matches = sum(1 for keyword in query_keywords if keyword in text)
+                if keyword_matches > 0 or match.score > 0.7:  # Only include if keywords match or high similarity
+                    retrieved_contexts.append(match.metadata["text"])
+                    sources.append(Source(
+                        pdf_name=match.metadata.get("file_name", "Unknown"),
+                        page_number=match.metadata.get("page_number", None),
+                        relevant_text=match.metadata.get("text", None)
+                    ))
+        
+        # Sort sources by relevance (most relevant first)
+        sources = sorted(sources, key=lambda x: len([kw for kw in query_text.lower().split() if kw in x.relevant_text.lower()]), reverse=True)
+        
+        # Take only the most relevant source
+        sources = sources[:1] if sources else []
+        
         context_str = "\n\n".join(retrieved_contexts)
 
         # 4. Construct RAG prompt
@@ -77,7 +105,7 @@ async def chat(request: ChatRequest):
         # 5. Call LLM with constructed prompt
         response = llm.invoke(prompt)
 
-        return ChatResponse(answer=response.content)
+        return ChatResponse(answer=response.content, sources=sources)
 
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")

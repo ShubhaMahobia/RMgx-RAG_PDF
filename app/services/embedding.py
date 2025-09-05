@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 class EmbeddingModel:
     def __init__(self, model_name: str = None, api_key: str = None):
-        print("Initializing embedding model===============================")
         """
         Initialize embedding model.
         

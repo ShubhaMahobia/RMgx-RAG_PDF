@@ -227,7 +227,8 @@ class PineconeVectorStoreHandler:
 
         for i, chunk in enumerate(chunks):
             metadata = chunk.metadata.copy()
-            metadata["text"] = chunk.page_content  
+            # Save both the text chunk and the real chunk data
+            metadata["text"] = chunk.page_content  # The text used for embedding/search
             meta.append(metadata)
 
         # upsert into Pinecone
