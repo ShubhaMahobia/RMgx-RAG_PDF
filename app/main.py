@@ -3,6 +3,7 @@ from app.routes import upload
 from app.utils.logger import configure_logger
 from app.routes import chat
 from app.utils.cleanup import cleanup_all_data
+from app.utils.aws_secrets import load_secrets_with_fallback
 import logging
 import os
 
@@ -21,25 +22,37 @@ app.include_router(chat.router, prefix="/api", tags=["Chat"])
 @app.on_event("startup")
 async def startup_event():
     logger.info("FastAPI application starting up...")
+
+    # Load secrets from AWS Secrets Manager or fallback to local
+    try:
+        aws_secrets_loaded = load_secrets_with_fallback()
+        if aws_secrets_loaded:
+            logger.info("Application will use AWS Secrets Manager for configuration")
+        else:
+            logger.info("Application will use local environment variables for configuration")
+    except Exception as e:
+        logger.warning(f"Error during secrets loading: {str(e)}")
+        logger.info("Application will use local environment variables for configuration")
+
     try:
         logger.info("Performing startup cleanup for fresh instance...")
         cleanup_all_data()
         logger.info("Startup cleanup completed successfully")
     except Exception as e:
         logger.warning(f"Startup cleanup failed: {str(e)}")
-    
+
     logger.info("PDF RAG Chatbot initialized successfully")
     logger.info("Routes loaded and ready to serve")
     logger.info(f"Log files will be saved to: logs/")
     logger.info(f"Log level: DEBUG (file), INFO (console)")
-    
+
     # Log important environment variables
     google_api_key = os.getenv("GOOGLE_API_KEY")
     if google_api_key:
         logger.info("Google API key is configured")
     else:
         logger.warning("Google API key is not configured - embedding features will not work")
-    
+
     logger.info(f"Working directory: {os.getcwd()}")
     logger.info(f"Upload directory: data/uploads")
     logger.info(f"Vector store: Pinecone (rag-assignment-setup)")

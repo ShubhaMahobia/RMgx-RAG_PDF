@@ -22,6 +22,11 @@ class Config:
     EMBEDDING_DIMENSION = 768  # Google's embedding dimension
     GOOGLE_EMBEDDING_MODEL = "models/embedding-001"
     GOOGLE_LLM_MODEL = "gemini-2.0-flash"
+
+    AWS_DEFAULT_REGION="ap-south-1"
+    S3_BUCKET_NAME="my-rag-bucket-assignment"
+    S3_UPLOAD_PREFIX= "storage_01"           # where PDFs will go
+    S3_CHROMA_PREFIX= "chroma/"  
     
     # Document Processing Configuration
     CHUNK_SIZE = 500  # Default chunk size in characters
