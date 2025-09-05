@@ -31,7 +31,7 @@ class EmbeddingModel:
             self.model: Embeddings = GoogleGenerativeAIEmbeddings(
                 model=model_name or "models/embedding-001",
                 google_api_key=api_key,
-                task_type="retrieval_document"  # Specify task type for better retrieval
+                task_type="retrieval_document" 
             )
             logger.debug("Successfully initialized embedding model")
             

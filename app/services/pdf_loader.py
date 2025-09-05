@@ -60,8 +60,8 @@ class PDFLoader:
                     'file_path': self.file_path,
                     'file_size': os.path.getsize(self.file_path) if os.path.exists(self.file_path) else 0,
                     'loader_type': 'PyPDFLoader',
-                    'source': original_filename,  # Set source to original filename for citations
-                    'pdf_name': original_filename  # Add explicit pdf_name field
+                    'source': original_filename, 
+                    'pdf_name': original_filename  
                 })
                 
                 logger.debug(f"Enhanced metadata for document: {enhanced_metadata}")

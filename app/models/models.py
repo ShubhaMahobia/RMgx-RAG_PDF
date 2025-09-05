@@ -2,6 +2,21 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 
+class ChatRequest(BaseModel):
+    query: str
+    session_id: str = "default"  # Session ID for memory management
+
+
+class Source(BaseModel):
+    pdf_name: str
+    page_number: int
+    relevant_text: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: list[Source]
+
 class DeleteRequest(BaseModel):
     """Request model for deleting files."""
     s3_key: str  # The S3 key of the file to delete

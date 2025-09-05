@@ -5,7 +5,7 @@ from app.services.embedding import EmbeddingModel
 from app.services.pinecone_store import PineconeVectorStoreHandler
 from app.services.storage.storage import get_storage
 from app.config import Config
-from app.models.chat import DeleteRequest, DeleteResponse, ResetRequest, ResetResponse
+from app.models.models import DeleteRequest, DeleteResponse, ResetRequest, ResetResponse
 from dotenv import load_dotenv
 import os
 import logging
@@ -79,7 +79,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
                 chunk.metadata["file_name"] = original_filename
                 chunk.metadata["chunk_id"] = idx
                 chunk.metadata["page_number"] = chunk.metadata.get("page", None)
-                chunk.metadata["s3_key"] = s3_key  # so you can fetch later if needed
+                chunk.metadata["s3_key"] = s3_key 
 
             all_chunks.extend(chunks)
             
@@ -104,7 +104,7 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
         # 9. Save manually-embedded docs into Pinecone
         logger.debug("Saving pre-embedded documents to Pinecone")
         vs_handler = PineconeVectorStoreHandler()
-        vs_handler.save_vectors(all_chunks, embeddings)  # <- implement save_vectors in handler
+        vs_handler.save_vectors(all_chunks, embeddings) 
         logger.info(f"Saved {len(all_chunks)} chunks to Pinecone vector store successfully")
 
         return {

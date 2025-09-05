@@ -76,28 +76,6 @@ class S3StorageService(BaseStorageService):
             ExpiresIn=expires_in
         )
 
-    # -------- directory sync helpers (for Chroma snapshots) --------
-    def upload_directory(self, local_dir: str, prefix: str) -> None:
-        prefix = prefix if prefix.endswith("/") else prefix + "/"
-        for root, _, files in os.walk(local_dir):
-            for f in files:
-                local_path = os.path.join(root, f)
-                rel = os.path.relpath(local_path, local_dir).replace("\\", "/")
-                key = f"{prefix}{rel}"
-                self.client.upload_file(local_path, self.bucket, key,
-                                        ExtraArgs={"ServerSideEncryption": "AES256"})
-
-    def download_directory(self, prefix: str, local_dir: str) -> None:
-        prefix = prefix if prefix.endswith("/") else prefix + "/"
-        os.makedirs(local_dir, exist_ok=True)
-        paginator = self.client.get_paginator("list_objects_v2")
-        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
-            for obj in page.get("Contents", []):
-                key = obj["Key"]
-                rel = key[len(prefix):]
-                local_path = os.path.join(local_dir, rel)
-                os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                self.client.download_file(self.bucket, key, local_path)
 
     def delete_all_files(self, prefix: str = "") -> int:
         """

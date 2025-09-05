@@ -14,24 +14,11 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
+from app.models.models import ChatRequest, Source, ChatResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Input schema
-class ChatRequest(BaseModel):
-    query: str
-    session_id: str = "default"  # Session ID for memory management
-
-# Output schema
-class Source(BaseModel):
-    pdf_name: str
-    page_number: int
-    relevant_text: str
-
-class ChatResponse(BaseModel):
-    answer: str
-    sources: list[Source]
 
 
 
@@ -42,7 +29,6 @@ llm = ChatGoogleGenerativeAI(
 
 vs_handler = PineconeVectorStoreHandler()
 
-# Memory management - store memories by session_id
 memory_store = {}
 
 def get_memory(session_id: str):
