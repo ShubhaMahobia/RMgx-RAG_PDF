@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-class ChatRequest(BaseModel):
-    query: str
-    retriever_type: str = "hybrid"  # "semantic" | "keyword" | "hybrid"
-
 
 class DeleteRequest(BaseModel):
     """Request model for deleting files."""
