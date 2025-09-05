@@ -99,3 +99,4 @@ def load_secrets_with_fallback() -> bool:
     else:
         logger.info("⚠️  AWS Secrets Manager not available, using local environment variables")
         return False
+
