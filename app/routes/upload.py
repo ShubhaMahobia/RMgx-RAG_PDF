@@ -90,29 +90,28 @@ async def upload_pdfs(files: List[UploadFile] = File(...)):
             except Exception as e:
                 logger.warning(f"Failed to clean up temporary file {temp_file_path}: {e}")
 
-        # 7. Initialize embedding model (once for all files)
+        # 7. Initialize embedding model
         logger.debug("Initializing embedding model")
         google_api_key = os.getenv("GOOGLE_API_KEY")
-        if not google_api_key:
-            logger.error("Google API key not found in environment")
-            raise HTTPException(status_code=500, detail="Google API key not configured.")
-
         embedder = EmbeddingModel(api_key=google_api_key)
         logger.info("Embedding model initialized successfully")
 
-        # 8. Save chunks into Pinecone vectorstore
-        logger.debug("Saving all documents to Pinecone vector store")
+        # 8. Embed chunks manually
+        logger.debug("Embedding all chunks before saving to Pinecone")
+        texts = [chunk.page_content for chunk in all_chunks]
+        embeddings = embedder.embed_documents(texts)
+
+        # 9. Save manually-embedded docs into Pinecone
+        logger.debug("Saving pre-embedded documents to Pinecone")
         vs_handler = PineconeVectorStoreHandler()
-        vs_handler.save_documents(all_chunks, embedder.model)
+        vs_handler.save_vectors(all_chunks, embeddings)  # <- implement save_vectors in handler
         logger.info(f"Saved {len(all_chunks)} chunks to Pinecone vector store successfully")
 
         return {
             "message": "Files uploaded and processed successfully",
             "uploaded_files": uploaded_files,
             "total_chunks": len(all_chunks),
-            "vectorstore": "pinecone",
-            "index_name": vs_handler.index_name,
-            "namespace": vs_handler.namespace
+            "vectorstore": "pinecone"
         }
 
     except Exception as e:

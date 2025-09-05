@@ -32,7 +32,6 @@ class PineconeVectorStoreHandler:
         
         # Initialize Pinecone client
         self.pc = Pinecone(api_key=api_key)
-        
         # Check if index exists, create if not
         self._ensure_index_exists()
 
@@ -189,43 +188,7 @@ class PineconeVectorStoreHandler:
             logger.error(f"Failed to get Pinecone stats: {str(e)}")
             raise
 
-    def delete_vectors_by_metadata(self, metadata_filter: dict):
-        """
-        Delete vectors from Pinecone based on metadata filter.
-        
-        Args:
-            metadata_filter (dict): Metadata filter to match vectors for deletion
-        """
-        try:
-            index = self.pc.Index(self.index_name)
-            
-            # Query for vectors with matching metadata
-            logger.debug(f"Searching for vectors with metadata filter: {metadata_filter}")
-            
-            query_response = index.query(
-                vector=[0.0] * Config.EMBEDDING_DIMENSION,  # Dummy vector for metadata filtering
-                filter=metadata_filter,
-                top_k=1000,  # Get all matching vectors
-                include_metadata=True
-            )
-            
-            if query_response.matches:
-                # Extract vector IDs to delete
-                vector_ids = [match.id for match in query_response.matches]
-                logger.info(f"Found {len(vector_ids)} vectors to delete with filter: {metadata_filter}")
-                
-                # Delete vectors by IDs
-                index.delete(ids=vector_ids)
-                logger.info(f"Successfully deleted {len(vector_ids)} vectors from Pinecone")
-                return len(vector_ids)
-            else:
-                logger.info(f"No vectors found with metadata filter: {metadata_filter}")
-                return 0
-                
-        except Exception as e:
-            logger.error(f"Failed to delete vectors by metadata: {str(e)}")
-            raise
-
+    
     def delete_all_vectors(self):
         """
         Delete all vectors from the Pinecone index.
@@ -257,3 +220,20 @@ class PineconeVectorStoreHandler:
         except Exception as e:
             logger.error(f"Failed to delete all vectors from Pinecone: {str(e)}")
             raise
+
+    def save_vectors(self, chunks, embeddings):
+        ids = [f"{chunk.metadata['file_name']}_{chunk.metadata['chunk_id']}" for chunk in chunks]
+        meta = []
+
+        for i, chunk in enumerate(chunks):
+            metadata = chunk.metadata.copy()
+            metadata["text"] = chunk.page_content  
+            meta.append(metadata)
+
+        # upsert into Pinecone
+        self.pc.Index(self.index_name).upsert(
+            vectors=[(ids[i], embeddings[i], meta[i]) for i in range(len(chunks))],
+            namespace="default"
+        )
+        print(f"✅ Saved {len(chunks)} vectors to Pinecone")
+
