@@ -21,3 +21,4 @@ google-generativeai
 from_root
 boto3
 ipykernel
+streamlit
