@@ -25,6 +25,17 @@ A sophisticated Retrieval-Augmented Generation (RAG) system that transforms PDF 
 - **Secure configuration**: AWS Secrets Manager for sensitive data management
 - **Containerized deployment**: Docker support for easy scaling and deployment
 
+## 🏗️ Architecture Overview
+
+### System Architecture Diagram
+![RAG Pipeline Architecture](Rag_Pipeline_Architecture.png)
+
+*This diagram shows the complete RAG pipeline from document upload to response generation, illustrating how data flows through each component of the system.*
+
+### Upload Process Architecture
+![Upload Architecture](upload_architecture.png)
+
+*This diagram details the document upload and processing workflow, showing how PDFs are processed, chunked, embedded, and stored in the vector database.*
 
 ## 🔧 How Services Work
 
