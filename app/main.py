@@ -42,7 +42,7 @@ async def startup_event():
     
     logger.info(f"Working directory: {os.getcwd()}")
     logger.info(f"Upload directory: data/uploads")
-    logger.info(f"Vector store directory: data/chroma")
+    logger.info(f"Vector store: Pinecone (rag-assignment-setup)")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -66,13 +66,9 @@ async def status_endpoint():
     """
     try:
         upload_dir = os.path.join(os.getcwd(), "data", "uploads")
-        chroma_dir = os.path.join(os.getcwd(), "data", "chroma")
-        index_dir = os.path.join(os.getcwd(), "data", "index")
         
         # Check if directories exist and count files
         upload_exists = os.path.exists(upload_dir)
-        chroma_exists = os.path.exists(chroma_dir)
-        index_exists = os.path.exists(index_dir)
         
         upload_count = 0
         if upload_exists:
@@ -81,14 +77,17 @@ async def status_endpoint():
             except:
                 upload_count = 0
         
-        chroma_size = 0
-        if chroma_exists:
-            try:
-                chroma_size = sum(os.path.getsize(os.path.join(dirpath, filename))
-                    for dirpath, dirnames, filenames in os.walk(chroma_dir)
-                    for filename in filenames)
-            except:
-                chroma_size = 0
+        # Check Pinecone connection
+        pinecone_status = "unknown"
+        try:
+            from app.services.pinecone_store import PineconeVectorStoreHandler
+            vs_handler = PineconeVectorStoreHandler()
+            stats = vs_handler.get_stats()
+            pinecone_status = "connected"
+            pinecone_vector_count = stats.get('total_vector_count', 0)
+        except Exception as e:
+            pinecone_status = f"error: {str(e)}"
+            pinecone_vector_count = 0
         
         return {
             "status": "success",
@@ -98,14 +97,10 @@ async def status_endpoint():
                     "count": upload_count,
                     "path": upload_dir
                 },
-                "chroma_db": {
-                    "exists": chroma_exists,
-                    "size_bytes": chroma_size,
-                    "path": chroma_dir
-                },
-                "index": {
-                    "exists": index_exists,
-                    "path": index_dir
+                "pinecone_db": {
+                    "status": pinecone_status,
+                    "vector_count": pinecone_vector_count,
+                    "index_name": "rag-assignment-setup"
                 }
             },
             "message": "Data status retrieved successfully"

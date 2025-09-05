@@ -2,6 +2,9 @@ import logging
 from typing import List
 from langchain.embeddings.base import Embeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from app.config import Config
+from dotenv import load_dotenv
+load_dotenv()
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
@@ -27,7 +30,8 @@ class EmbeddingModel:
             # Google Generative AI embeddings
             self.model: Embeddings = GoogleGenerativeAIEmbeddings(
                 model=model_name or "models/embedding-001",
-                google_api_key=api_key
+                google_api_key=api_key,
+                task_type="retrieval_document"  # Specify task type for better retrieval
             )
             logger.debug("Successfully initialized embedding model")
             

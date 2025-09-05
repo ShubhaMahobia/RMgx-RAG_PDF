@@ -12,9 +12,17 @@ class Config:
     CHROMA_PERSIST_DIR = "data/index"
     COLLECTION_NAME = "pdf_collection"
     
+    # Pinecone Configuration
+    PINECONE_API_KEY: Optional[str] = None  # Set via environment variable
+    PINECONE_ENVIRONMENT = "aped-4627-b74a"  # From your URL
+    PINECONE_INDEX_NAME = "rag-assignment-setup"  # From your URL
+    PINECONE_HOST = "https://rag-assignment-setup-3kcgbjt.svc.aped-4627-b74a.pinecone.io"
+    
     # Embedding Dimensions
     EMBEDDING_DIMENSION = 768  # Google's embedding dimension
+    GOOGLE_EMBEDDING_MODEL = "models/embedding-001"
+    GOOGLE_LLM_MODEL = "gemini-2.0-flash"
     
     # Document Processing Configuration
-    CHUNK_SIZE = 1000  # Default chunk size in characters
+    CHUNK_SIZE = 500  # Default chunk size in characters
     CHUNK_OVERLAP = 200  # Default chunk overlap in characters
